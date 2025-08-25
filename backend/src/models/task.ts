@@ -3,4 +3,5 @@ export interface Task {
   project: string;
   title: string;
   tag: string;
+  color: string;
 }
