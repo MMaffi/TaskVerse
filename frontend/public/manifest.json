@@ -1,0 +1,46 @@
+{
+  "short_name": "TaskVerse",
+  "name": "TaskVerse - Seu Universo de Tarefas",
+  "description": "Organize, priorize e conclua suas tarefas de forma intuitiva",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#f8fafc",
+  "categories": ["productivity", "organization"],
+  "lang": "pt-BR",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "screenshots": [
+    {
+      "src": "screenshots/mobile.png",
+      "type": "image/png",
+      "sizes": "375x812",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/desktop.png",
+      "type": "image/png",
+      "sizes": "1920x1080",
+      "form_factor": "wide"
+    }
+  ]
+}
