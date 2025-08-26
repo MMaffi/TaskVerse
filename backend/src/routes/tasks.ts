@@ -1,68 +1,88 @@
 import { Router, Request, Response } from "express";
-import { db } from "../config/db";
-import { Task } from "../models/task";
+import { authMiddleware } from "../middleware/auth";
+import db from "../config/db";
+
+// Extensão para req.user
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+  };
+}
 
 const router = Router();
 
-// GET all tasks
-router.get("/", async (req: Request, res: Response) => {
+// LISTAR TODAS AS TASKS DO USUÁRIO
+router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const [rows] = await db.query("SELECT * FROM tasks");
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar tarefas" });
+    const [tasks] = await db.query(
+      "SELECT * FROM tasks WHERE user_id = ?",
+      [req.user!.id]
+    );
+    res.json(tasks);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao buscar tarefas" });
   }
 });
 
-// POST new task
-router.post("/", async (req: Request, res: Response) => {
-  const { project, title, tag, color }: { project: string; title: string; tag: string; color?: string } = req.body;
+// CRIAR UMA TASK
+router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { project, title, tag, color } = req.body;
+  if (!title) return res.status(400).json({ message: "Título obrigatório" });
 
   try {
-    const [result]: any = await db.query(
-      "INSERT INTO tasks (project, title, tag, color) VALUES (?, ?, ?, ?)",
-      [project, title, tag, color || "gray"]
+    const [result] = await db.query(
+      "INSERT INTO tasks (project, title, tag, color, user_id) VALUES (?, ?, ?, ?, ?)",
+      [project || "Meu Projeto", title, tag || "Tag", color || "gray", req.user!.id]
+    );
+    res.status(201).json({ message: "Tarefa criada", taskId: (result as any).insertId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao criar tarefa" });
+  }
+});
+
+// EDITAR UMA TASK
+router.put("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { title, tag, color } = req.body;
+
+  try {
+    const [result] = await db.query(
+      "UPDATE tasks SET title = ?, tag = ?, color = ? WHERE id = ? AND user_id = ?",
+      [title, tag, color, id, req.user!.id]
     );
 
-    const newTask: Task = {
-      id: result.insertId,
-      project,
-      title,
-      tag,
-      color: color || "gray"
-    };
+    if ((result as any).affectedRows === 0) {
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+    }
 
-    res.status(201).json(newTask);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao criar tarefa" });
+    res.json({ message: "Tarefa atualizada" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao atualizar tarefa" });
   }
 });
 
-// PUT update task
-router.put("/:id", async (req: Request, res: Response) => {
+// DELETAR UMA TASK
+router.delete("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { project, title, tag, color }: Task = req.body;
 
   try {
-    await db.query(
-      "UPDATE tasks SET project=?, title=?, tag=?, color=? WHERE id=?",
-      [project, title, tag, color, id]
+    const [result] = await db.query(
+      "DELETE FROM tasks WHERE id = ? AND user_id = ?",
+      [id, req.user!.id]
     );
-    res.json({ id, project, title, tag, color });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar tarefa" });
-  }
-});
 
-// DELETE task
-router.delete("/:id", async (req: Request, res: Response) => {
-  const { id } = req.params;
+    if ((result as any).affectedRows === 0) {
+      return res.status(404).json({ message: "Tarefa não encontrada" });
+    }
 
-  try {
-    await db.query("DELETE FROM tasks WHERE id=?", [id]);
-    res.json({ message: "Tarefa deletada com sucesso" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao deletar tarefa" });
+    res.json({ message: "Tarefa deletada" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao deletar tarefa" });
   }
 });
 

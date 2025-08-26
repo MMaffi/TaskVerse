@@ -1,0 +1,143 @@
+/* Sidebar geral */
+.sidebar {
+  width: 250px;
+  background-color: #d9eaf7;
+  padding: 15px;
+  border-right: 1px solid #ccc;
+  transition: width 0.3s;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+/* Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.sidebar-title {
+  flex: 1;
+  margin: 0 10px;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.logout-btn-sidebar {
+  background-color: #ff5c5c;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.logout-btn-sidebar:hover {
+  background-color: #e04c4c;
+}
+
+/* Botões principais */
+.new-project-btn,
+.create-tag-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #ffb74d;
+  color: #2c3e50;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.new-project-btn:hover,
+.create-tag-btn:hover {
+  background-color: #ffa726;
+}
+
+/* Lista de projetos */
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+  overflow-y: auto;
+}
+
+/* Item de projeto */
+.project-item {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: 0.2s;
+}
+
+.project-item:hover {
+  background-color: #e0f0ff;
+}
+
+/* Nome do projeto */
+.project-name {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+/* Tags dentro do projeto */
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag {
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Scroll da sidebar se necessário */
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 1000;
+  }
+
+  .sidebar.collapsed {
+    width: 60px;
+  }
+}

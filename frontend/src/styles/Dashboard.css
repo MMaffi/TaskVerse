@@ -1,0 +1,288 @@
+/* Reset e fundo */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #e0f0ff;
+}
+
+.dashboard {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Conteúdo principal */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+header h2 {
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+.logout-btn {
+  background-color: #ff5c5c;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #e04c4c;
+}
+
+/* Botão geral adicionar tarefa */
+.add-task-btn {
+  background-color: #66cc99;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-task-btn:hover {
+  background-color: #55b285;
+}
+
+/* Lista de projetos */
+.projects-container {
+  display: flex;
+  flex-direction: column; /* Projetos empilhados */
+  gap: 20px;
+}
+
+.project-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  width: 97%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-task-project-btn {
+  background-color: #66cc99;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-task-project-btn:hover {
+  background-color: #55b285;
+}
+
+/* Lista de tasks */
+.task-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.task-item {
+  background-color: #f4f4f4;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.task-title {
+  font-weight: bold;
+  color: #2c3e50;
+  flex: 1;
+}
+
+.task-tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.task-tag::before {
+  content: "#";
+}
+
+.task-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.task-actions button {
+  border: none;
+  padding: 4px 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.edit-btn {
+  background-color: #f9ca24;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #f7b731;
+}
+
+.delete-btn {
+  background-color: #ff5c5c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #e04c4c;
+}
+
+.save-btn {
+  background-color: #66cc99;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #55b285;
+}
+
+.cancel-btn {
+  background-color: #ccc;
+}
+
+.cancel-btn:hover {
+  background-color: #aaa;
+}
+
+/* Inputs edição inline */
+.task-item input,
+.task-item select {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 6px;
+}
+
+/* Modais */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+}
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-buttons button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal-buttons button:first-child {
+  background-color: #66cc99;
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #55b285;
+}
+
+.modal-buttons button:last-child {
+  background-color: #ccc;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #aaa;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .task-input {
+    flex-direction: column;
+  }
+
+  .task-input input,
+  .task-input select,
+  .task-input button {
+    width: 100%;
+  }
+}

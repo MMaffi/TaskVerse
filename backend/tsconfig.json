@@ -4,6 +4,7 @@
     "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "strict": true,
     "esModuleInterop": true
   }
