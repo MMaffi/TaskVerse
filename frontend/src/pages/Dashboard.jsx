@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Dashboard.css";
 
@@ -46,7 +47,7 @@ function Dashboard() {
       setTasks(tasksRes.data);
       setProjects(projectsRes.data);
       setTags(tagsRes.data);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao buscar dados");
     }
   }
@@ -57,7 +58,7 @@ function Dashboard() {
     navigate("/login");
   }
 
-  // --- Criação ---
+  // --- Criação / Edição ---
   async function createProject() {
     if (!newProjectName.trim()) return;
     try {
@@ -117,12 +118,33 @@ function Dashboard() {
 
   const handleDelete = async () => {
     const { type, id, name } = deleteTarget;
+
+    // Mapeamento para português
+    const typePt = {
+      task: "Tarefa",
+      project: "Projeto",
+      tag: "Tag"
+    }[type] || type;
+
     try {
-      if (type === "task") await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (type === "project") { await deleteTasksByProject(name); await axios.delete(`http://localhost:3000/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } }); }
-      if (type === "tag") { await deleteTasksByTag(name); await axios.delete(`http://localhost:3000/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } }); }
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deletado(a)`); setShowDeleteModal(false); fetchData();
-    } catch { toast.error(`Erro ao deletar ${type}`); }
+      if (type === "task") {
+        await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      if (type === "project") {
+        await deleteTasksByProject(name);
+        await axios.delete(`http://localhost:3000/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      if (type === "tag") {
+        await deleteTasksByTag(name);
+        await axios.delete(`http://localhost:3000/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      }
+
+      toast.success(`${typePt} deletado(a)`);
+      setShowDeleteModal(false);
+      fetchData();
+    } catch {
+      toast.error(`Erro ao deletar ${typePt}`);
+    }
   };
 
   // --- Modais ---
@@ -130,15 +152,33 @@ function Dashboard() {
   const cancelTaskModal = () => { setShowTaskModal(false); setNewTaskTitle(""); setNewTaskProject(""); setNewTaskTag(""); setIsProjectFixed(false); setEditingTask(null); };
   const cancelProjectModal = () => { setShowProjectModal(false); setNewProjectName(""); setEditingProject(null); };
   const cancelTagModal = () => { setShowTagModal(false); setNewTagName(""); setNewTagColor("#1890ff"); setEditingTag(null); };
-  const openEditTaskModal = (task) => { setEditingTask(task); setNewTaskTitle(task.title); setNewTaskProject(task.project); setNewTaskTag(task.tag); setShowTaskModal(true); };
 
-  // --- Editar projeto/tag via modal ---
+  const openEditTaskModal = (task) => { setEditingTask(task); setNewTaskTitle(task.title); setNewTaskProject(task.project); setNewTaskTag(task.tag); setShowTaskModal(true); };
   const openEditProjectModal = (project) => { setEditingProject(project); setNewProjectName(project.name); setShowProjectModal(true); };
   const openEditTagModal = (tag) => { setEditingTag(tag); setNewTagName(tag.name); setNewTagColor(tag.color); setShowTagModal(true); };
 
+  // --- Drag & Drop ---
+  const onDragEnd = async (result) => {
+    const { destination, draggableId } = result;
+    if (!destination) return;
+    const taskId = parseInt(draggableId);
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newProject = destination.droppableId;
+    if (task.project === newProject) return;
+
+    const updatedTask = { ...task, project: newProject };
+
+    try {
+      await axios.put(`http://localhost:3000/tasks/${taskId}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
+      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+      toast.success(`Tarefa movida para ${newProject}`);
+    } catch { toast.error("Erro ao mover tarefa"); }
+  };
+
   return (
     <div className="dashboard">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <Sidebar
         projects={projects} tags={tags}
@@ -160,36 +200,56 @@ function Dashboard() {
           </button>
         </header>
 
-        <div className="projects-container">
-          {projects.map(project => (
-            <div key={project.id} className="project-box">
-              <div className="project-header">
-                <h3>{project.name}</h3>
-                <button className="add-task-project-btn" onClick={() => { setEditingTask(null); setNewTaskProject(project.name); setIsProjectFixed(true); setShowTaskModal(true); }}>
-                  + Adicionar Tarefa
-                </button>
-              </div>
-              <ul className="task-list">
-                {tasks.filter(t => t.project === project.name).map(task => (
-                  <li key={task.id} className="task-item">
-                    <div className="task-header">
-                      <span className="task-title">{task.title}</span>
-                      <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="projects-container">
+            {projects.map(project => (
+              <Droppable droppableId={project.name} key={project.id}>
+                {(provided) => (
+                  <div className="project-box" ref={provided.innerRef} {...provided.droppableProps}>
+                    <div className="project-header">
+                      <h3>{project.name}</h3>
+                      <button className="add-task-project-btn" onClick={() => { setEditingTask(null); setNewTaskProject(project.name); setIsProjectFixed(true); setShowTaskModal(true); }}>
+                        + Adicionar Tarefa
+                      </button>
                     </div>
-                    <div className="task-actions">
-                      <button className="edit-btn" onClick={() => openEditTaskModal(task)}>Editar</button>
-                      <button className="delete-btn" onClick={() => confirmDeleteTask(task.id, task.title)}>Excluir</button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+                    <ul className="task-list">
+                      {tasks.filter(t => t.project === project.name).map((task, index) => (
+                        <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
+                          {(provided, snapshot) => (
+                            <li
+                              className={`task-item ${snapshot.isDragging ? "dragging" : ""}`}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={{
+                                ...provided.draggableProps.style,
+                                boxShadow: snapshot.isDragging ? "0 5px 15px rgba(0,0,0,0.3)" : "none",
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <div className="task-header">
+                                <span className="task-title">{task.title}</span>
+                                <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
+                              </div>
+                              <div className="task-actions">
+                                <button className="edit-btn" onClick={() => openEditTaskModal(task)}>Editar</button>
+                                <button className="delete-btn" onClick={() => confirmDeleteTask(task.id, task.title)}>Excluir</button>
+                              </div>
+                            </li>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </ul>
+                  </div>
+                )}
+              </Droppable>
+            ))}
+          </div>
+        </DragDropContext>
       </div>
 
-      {/* Aqui você pode reutilizar os modais de criação/edição como antes */}
-      {/* Project Modal */}
+      {/* Modais (mesmos do código anterior) */}
       {showProjectModal && (
         <div className="modal">
           <div className="modal-content">
@@ -203,7 +263,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Tag Modal */}
       {showTagModal && (
         <div className="modal">
           <div className="modal-content">
@@ -218,7 +277,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Task Modal */}
       {showTaskModal && (
         <div className="modal">
           <div className="modal-content">
@@ -240,7 +298,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Delete Modal */}
       {showDeleteModal && (
         <div className="modal">
           <div className="modal-content">
@@ -254,7 +311,6 @@ function Dashboard() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
