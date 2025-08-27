@@ -9,6 +9,7 @@
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
+  overflow-x: hidden; /* evita scroll horizontal */
 }
 
 .sidebar.collapsed {
@@ -52,18 +53,32 @@
   background-color: #e04c4c;
 }
 
-/* Botões principais */
+/* Section Header (Projetos / Tags) */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #bbb;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
 .new-project-btn,
 .create-tag-btn {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
+  padding: 4px 8px;
   border: none;
   border-radius: 6px;
-  background-color: #ffb74d;
-  color: #2c3e50;
-  font-weight: bold;
+  font-size: 12px;
   cursor: pointer;
+  background-color: #ffb74d;
+  font-weight: bold;
   transition: 0.2s;
 }
 
@@ -72,50 +87,77 @@
   background-color: #ffa726;
 }
 
-/* Lista de projetos */
-.projects-list {
+/* Listas de Projetos e Tags */
+.projects-list,
+.tags-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 15px;
-  overflow-y: auto;
+  gap: 6px;
 }
 
-/* Item de projeto */
-.project-item {
-  padding: 8px;
+/* Wrapper dos itens */
+.project-item-wrapper,
+.tag-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* mantém os botões dentro do item */
+  padding: 2px 0;
+}
+
+/* Item de Projeto / Tag */
+.project-item,
+.tag {
+  padding: 6px 10px;
   border-radius: 6px;
   background-color: #fff;
   cursor: pointer;
+  transition: 0.2s;
+  font-weight: bold;
+  flex-shrink: 0; /* não deixa encolher o conteúdo */
+}
+
+.project-item:hover,
+.tag:hover {
+  filter: brightness(1.1);
+}
+
+/* Opções Editar/Excluir */
+.item-actions {
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+}
+
+.item-actions .edit-btn,
+.item-actions .delete-btn {
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: white;
   transition: 0.2s;
 }
 
-.project-item:hover {
-  background-color: #e0f0ff;
+.item-actions .edit-btn {
+  background-color: #4caf50;
 }
 
-/* Nome do projeto */
-.project-name {
-  font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 5px;
+.item-actions .edit-btn:hover {
+  background-color: #43a047;
 }
 
-/* Tags dentro do projeto */
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+.item-actions .delete-btn {
+  background-color: #ff5c5c;
 }
 
-.tag {
-  padding: 2px 6px;
-  border-radius: 5px;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
+.item-actions .delete-btn:hover {
+  background-color: #e04c4c;
+}
+
+/* Seções */
+.projects-section,
+.tags-section {
+  margin-bottom: 20px;
 }
 
 /* Scroll da sidebar se necessário */
@@ -125,6 +167,7 @@
   flex-direction: column;
   overflow-y: auto;
   padding-bottom: 10px;
+  overflow-x: hidden;
 }
 
 /* Media Query */
@@ -135,9 +178,5 @@
     top: 0;
     height: 100%;
     z-index: 1000;
-  }
-
-  .sidebar.collapsed {
-    width: 60px;
   }
 }
