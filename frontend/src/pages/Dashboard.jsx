@@ -12,6 +12,9 @@ function Dashboard() {
   const [tags, setTags] = useState([]);
 
   const [editingTask, setEditingTask] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
+  const [editingTag, setEditingTag] = useState(null);
+
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -25,11 +28,13 @@ function Dashboard() {
   const [isProjectFixed, setIsProjectFixed] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState({ type: "", id: null, name: "" });
+  const [deleteTarget, setDeleteTarget] = useState({ type: "", id: null, name: "", relatedTasks: 0 });
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userName = localStorage.getItem("userName") || "Usuário";
+
+  useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
     try {
@@ -42,14 +47,9 @@ function Dashboard() {
       setProjects(projectsRes.data);
       setTags(tagsRes.data);
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao buscar dados");
     }
   }
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   function logout() {
     localStorage.removeItem("token");
@@ -57,163 +57,97 @@ function Dashboard() {
     navigate("/login");
   }
 
+  // --- Criação ---
   async function createProject() {
     if (!newProjectName.trim()) return;
     try {
-      await axios.post(
-        "http://localhost:3000/projects",
-        { name: newProjectName },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setNewProjectName("");
-      setShowProjectModal(false);
-      toast.success("Projeto criado com sucesso");
-      fetchData();
-    } catch (err) {
-      toast.error("Erro ao criar projeto");
-    }
+      if (editingProject) {
+        await axios.put(`http://localhost:3000/projects/${editingProject.id}`, { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Projeto editado com sucesso");
+      } else {
+        await axios.post("http://localhost:3000/projects", { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Projeto criado com sucesso");
+      }
+      setNewProjectName(""); setShowProjectModal(false); setEditingProject(null); fetchData();
+    } catch { toast.error("Erro ao criar/editar projeto"); }
   }
 
   async function createTag() {
     if (!newTagName.trim()) return;
     try {
-      await axios.post(
-        "http://localhost:3000/tags",
-        { name: newTagName, color: newTagColor },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setNewTagName("");
-      setNewTagColor("#1890ff");
-      setShowTagModal(false);
-      toast.success("Tag criada com sucesso");
-      fetchData();
-    } catch (err) {
-      toast.error("Erro ao criar tag");
-    }
+      if (editingTag) {
+        await axios.put(`http://localhost:3000/tags/${editingTag.id}`, { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Tag editada com sucesso");
+      } else {
+        await axios.post("http://localhost:3000/tags", { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Tag criada com sucesso");
+      }
+      setNewTagName(""); setNewTagColor("#1890ff"); setShowTagModal(false); setEditingTag(null); fetchData();
+    } catch { toast.error("Erro ao criar/editar tag"); }
   }
 
   async function addTask() {
-    if (projects.length === 0) {
-      toast.warning("Crie um projeto antes de adicionar uma tarefa.");
-      return;
-    }
-
-    if (tags.length === 0) {
-      toast.warning("Crie uma tag antes de adicionar uma tarefa.");
-      return;
-    }
-
-    if (!newTaskTitle.trim() || !newTaskProject || !newTaskTag) {
-      toast.warning("Preencha todos os campos da tarefa.");
-      return;
-    }
-
-    const color = tags.find((t) => t.name === newTaskTag)?.color || "gray";
+    if (!newTaskTitle.trim() || !newTaskProject || !newTaskTag) return toast.warning("Preencha todos os campos");
+    const color = tags.find(t => t.name === newTaskTag)?.color || "gray";
     try {
-      await axios.post(
-        "http://localhost:3000/tasks",
-        { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setNewTaskTitle("");
-      setNewTaskTag("");
-      setNewTaskProject("");
-      setIsProjectFixed(false);
-      setShowTaskModal(false);
-      toast.success("Tarefa criada com sucesso");
-      fetchData();
-    } catch (err) {
-      toast.error("Erro ao criar tarefa");
-    }
+      if (editingTask) {
+        await axios.put(`http://localhost:3000/tasks/${editingTask.id}`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Tarefa editada com sucesso");
+      } else {
+        await axios.post("http://localhost:3000/tasks", { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        toast.success("Tarefa criada com sucesso");
+      }
+      cancelTaskModal(); fetchData();
+    } catch { toast.error("Erro ao criar/editar tarefa"); }
   }
 
-  async function editTask() {
-    if (!editingTask.title.trim() || !editingTask.tag) return;
-    const color = tags.find((t) => t.name === editingTask.tag)?.color || "gray";
+  // --- Exclusão ---
+  async function deleteTasksByProject(projectName) {
+    const related = tasks.filter(t => t.project === projectName);
+    for (const t of related) await axios.delete(`http://localhost:3000/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
+  }
+  async function deleteTasksByTag(tagName) {
+    const related = tasks.filter(t => t.tag === tagName);
+    for (const t of related) await axios.delete(`http://localhost:3000/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
+  }
+
+  const confirmDeleteProject = (id, name) => { const related = tasks.filter(t => t.project === name).length; setDeleteTarget({ type: "project", id, name, relatedTasks: related }); setShowDeleteModal(true); };
+  const confirmDeleteTag = (id, name) => { const related = tasks.filter(t => t.tag === name).length; setDeleteTarget({ type: "tag", id, name, relatedTasks: related }); setShowDeleteModal(true); };
+  const confirmDeleteTask = (id, name) => { setDeleteTarget({ type: "task", id, name, relatedTasks: 0 }); setShowDeleteModal(true); };
+
+  const handleDelete = async () => {
+    const { type, id, name } = deleteTarget;
     try {
-      await axios.put(
-        `http://localhost:3000/tasks/${editingTask.id}`,
-        {
-          title: editingTask.title,
-          project: editingTask.project,
-          tag: editingTask.tag,
-          color,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setEditingTask(null);
-      toast.success("Tarefa editada com sucesso");
-      fetchData();
-    } catch (err) {
-      toast.error("Erro ao editar tarefa");
-    }
-  }
-
-  function openEditModal(task) {
-    setEditingTask({ ...task });
-  }
-
-  function confirmDelete(type, id, name) {
-    setDeleteTarget({ type, id, name });
-    setShowDeleteModal(true);
-  }
-
-  async function handleDelete() {
-    const { type, id } = deleteTarget;
-    try {
-      if (type === "task")
-        await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      else if (type === "project")
-        await axios.delete(`http://localhost:3000/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      else if (type === "tag")
-        await axios.delete(`http://localhost:3000/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deletado(a)`);
-      setShowDeleteModal(false);
-      fetchData();
-    } catch (err) {
-      toast.error(`Erro ao deletar ${type}`);
-    }
-  }
-
-  // Função genérica para lidar com Enter e Esc
-  const handleKeyDown = (e, saveFn, cancelFn) => {
-    if (e.key === "Enter") saveFn();
-    if (e.key === "Escape") cancelFn();
+      if (type === "task") await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (type === "project") { await deleteTasksByProject(name); await axios.delete(`http://localhost:3000/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } }); }
+      if (type === "tag") { await deleteTasksByTag(name); await axios.delete(`http://localhost:3000/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } }); }
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deletado(a)`); setShowDeleteModal(false); fetchData();
+    } catch { toast.error(`Erro ao deletar ${type}`); }
   };
 
-  const cancelTaskModal = () => {
-    setShowTaskModal(false);
-    setNewTaskTitle("");
-    setNewTaskProject("");
-    setNewTaskTag("");
-    setIsProjectFixed(false);
-  };
+  // --- Modais ---
+  const handleKeyDown = (e, saveFn, cancelFn) => { if (e.key === "Enter") saveFn(); if (e.key === "Escape") cancelFn(); };
+  const cancelTaskModal = () => { setShowTaskModal(false); setNewTaskTitle(""); setNewTaskProject(""); setNewTaskTag(""); setIsProjectFixed(false); setEditingTask(null); };
+  const cancelProjectModal = () => { setShowProjectModal(false); setNewProjectName(""); setEditingProject(null); };
+  const cancelTagModal = () => { setShowTagModal(false); setNewTagName(""); setNewTagColor("#1890ff"); setEditingTag(null); };
+  const openEditTaskModal = (task) => { setEditingTask(task); setNewTaskTitle(task.title); setNewTaskProject(task.project); setNewTaskTag(task.tag); setShowTaskModal(true); };
 
-  const cancelProjectModal = () => {
-    setShowProjectModal(false);
-    setNewProjectName("");
-  };
-
-  const cancelTagModal = () => {
-    setShowTagModal(false);
-    setNewTagName("");
-    setNewTagColor("#1890ff");
-  };
-
-  const cancelEditModal = () => {
-    setEditingTask(null);
-  };
+  // --- Editar projeto/tag via modal ---
+  const openEditProjectModal = (project) => { setEditingProject(project); setNewProjectName(project.name); setShowProjectModal(true); };
+  const openEditTagModal = (tag) => { setEditingTag(tag); setNewTagName(tag.name); setNewTagColor(tag.color); setShowTagModal(true); };
 
   return (
     <div className="dashboard">
       <ToastContainer position="top-right" autoClose={3000} />
+
       <Sidebar
-        projects={projects}
-        tags={tags}
-        onSelectProject={() => {}}
-        onCreateProject={() => setShowProjectModal(true)}
-        onCreateTag={() => setShowTagModal(true)}
+        projects={projects} tags={tags}
+        onCreateProject={() => { setEditingProject(null); setNewProjectName(""); setShowProjectModal(true); }}
+        onDeleteProject={confirmDeleteProject}
+        onEditProject={openEditProjectModal}
+        onCreateTag={() => { setEditingTag(null); setNewTagName(""); setNewTagColor("#1890ff"); setShowTagModal(true); }}
+        onDeleteTag={confirmDeleteTag}
+        onEditTag={openEditTagModal}
         onLogout={logout}
         userName={userName}
       />
@@ -221,88 +155,46 @@ function Dashboard() {
       <div className="main-content">
         <header>
           <h2>Dashboard</h2>
-          <button
-            className="add-task-btn"
-            onClick={() => {
-              if (projects.length === 0) {
-                toast.warning("Crie um projeto antes de adicionar uma tarefa.");
-                return;
-              }
-              if (tags.length === 0) {
-                toast.warning("Crie uma tag antes de adicionar uma tarefa.");
-                return;
-              }
-              setNewTaskProject("");
-              setIsProjectFixed(false);
-              setShowTaskModal(true);
-            }}
-          >
+          <button className="add-task-btn" onClick={() => { setEditingTask(null); setNewTaskProject(""); setIsProjectFixed(false); setShowTaskModal(true); }}>
             + Adicionar Tarefa
           </button>
         </header>
 
         <div className="projects-container">
-          {projects.map((project) => (
+          {projects.map(project => (
             <div key={project.id} className="project-box">
               <div className="project-header">
                 <h3>{project.name}</h3>
-                <button
-                  className="add-task-project-btn"
-                  onClick={() => {
-                    if (tags.length === 0) {
-                      toast.warning("Crie uma tag antes de adicionar uma tarefa.");
-                      return;
-                    }
-                    setNewTaskProject(project.name);
-                    setIsProjectFixed(true);
-                    setShowTaskModal(true);
-                  }}
-                >
+                <button className="add-task-project-btn" onClick={() => { setEditingTask(null); setNewTaskProject(project.name); setIsProjectFixed(true); setShowTaskModal(true); }}>
                   + Adicionar Tarefa
                 </button>
               </div>
-
               <ul className="task-list">
-                {tasks
-                  .filter((task) => task.project === project.name)
-                  .map((task) => (
-                    <li key={task.id} className="task-item">
-                      <div className="task-header">
-                        <span className="task-title">{task.title}</span>
-                        <span className="task-tag" style={{ backgroundColor: task.color }}>
-                          {task.tag}
-                        </span>
-                      </div>
-                      <div className="task-actions">
-                        <button className="edit-btn" onClick={() => openEditModal(task)}>
-                          Editar
-                        </button>
-                        <button
-                          className="delete-btn"
-                          onClick={() => confirmDelete("task", task.id, task.title)}
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                {tasks.filter(t => t.project === project.name).map(task => (
+                  <li key={task.id} className="task-item">
+                    <div className="task-header">
+                      <span className="task-title">{task.title}</span>
+                      <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
+                    </div>
+                    <div className="task-actions">
+                      <button className="edit-btn" onClick={() => openEditTaskModal(task)}>Editar</button>
+                      <button className="delete-btn" onClick={() => confirmDeleteTask(task.id, task.title)}>Excluir</button>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Modal Projeto */}
+      {/* Aqui você pode reutilizar os modais de criação/edição como antes */}
+      {/* Project Modal */}
       {showProjectModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Criar Projeto</h3>
-            <input
-              placeholder="Nome do projeto"
-              value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, createProject, cancelProjectModal)}
-            />
+            <h3>{editingProject ? "Editar Projeto" : "Criar Projeto"}</h3>
+            <input placeholder="Nome do projeto" value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => handleKeyDown(e, createProject, cancelProjectModal)} />
             <div className="modal-buttons">
               <button onClick={createProject}>Salvar</button>
               <button onClick={cancelProjectModal}>Cancelar</button>
@@ -311,23 +203,13 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Modal Tag */}
+      {/* Tag Modal */}
       {showTagModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Criar Tag</h3>
-            <input
-              placeholder="Nome da tag"
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, createTag, cancelTagModal)}
-            />
-            <input
-              type="color"
-              value={newTagColor}
-              onChange={(e) => setNewTagColor(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, createTag, cancelTagModal)}
-            />
+            <h3>{editingTag ? "Editar Tag" : "Criar Tag"}</h3>
+            <input placeholder="Nome da tag" value={newTagName} onChange={e => setNewTagName(e.target.value)} onKeyDown={e => handleKeyDown(e, createTag, cancelTagModal)} />
+            <input type="color" value={newTagColor} onChange={e => setNewTagColor(e.target.value)} />
             <div className="modal-buttons">
               <button onClick={createTag}>Salvar</button>
               <button onClick={cancelTagModal}>Cancelar</button>
@@ -336,41 +218,19 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Modal Tarefa */}
+      {/* Task Modal */}
       {showTaskModal && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Criar Tarefa</h3>
-            <input
-              placeholder="Título da tarefa"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, addTask, cancelTaskModal)}
-            />
-            <select
-              value={newTaskProject}
-              onChange={(e) => setNewTaskProject(e.target.value)}
-              disabled={isProjectFixed}
-              onKeyDown={(e) => handleKeyDown(e, addTask, cancelTaskModal)}
-            >
+            <h3>{editingTask ? "Editar Tarefa" : "Criar Tarefa"}</h3>
+            <input placeholder="Título da tarefa" value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} onKeyDown={e => handleKeyDown(e, addTask, cancelTaskModal)} />
+            <select value={newTaskProject} disabled={isProjectFixed} onChange={e => setNewTaskProject(e.target.value)}>
               <option value="">Selecione projeto</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.name}>
-                  {p.name}
-                </option>
-              ))}
+              {projects.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
             </select>
-            <select
-              value={newTaskTag}
-              onChange={(e) => setNewTaskTag(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, addTask, cancelTaskModal)}
-            >
+            <select value={newTaskTag} onChange={e => setNewTaskTag(e.target.value)}>
               <option value="">Selecione tag</option>
-              {tags.map((t) => (
-                <option key={t.id} value={t.name}>
-                  {t.name}
-                </option>
-              ))}
+              {tags.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
             </select>
             <div className="modal-buttons">
               <button onClick={addTask}>Salvar</button>
@@ -380,47 +240,13 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Modal Editar */}
-      {editingTask && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Editar Tarefa</h3>
-            <input
-              placeholder="Título da tarefa"
-              value={editingTask.title}
-              onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
-              onKeyDown={(e) => handleKeyDown(e, editTask, cancelEditModal)}
-            />
-            <select value={editingTask.project} disabled>
-              <option>{editingTask.project}</option>
-            </select>
-            <select
-              value={editingTask.tag}
-              onChange={(e) => setEditingTask({ ...editingTask, tag: e.target.value })}
-              onKeyDown={(e) => handleKeyDown(e, editTask, cancelEditModal)}
-            >
-              {tags.map((t) => (
-                <option key={t.id} value={t.name}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <div className="modal-buttons">
-              <button onClick={editTask}>Salvar</button>
-              <button onClick={cancelEditModal}>Cancelar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Deletar */}
+      {/* Delete Modal */}
       {showDeleteModal && (
         <div className="modal">
           <div className="modal-content">
             <h3>Confirmar exclusão</h3>
-            <p>
-              Deseja realmente excluir <b>{deleteTarget.name}</b>?
-            </p>
+            <p>Deseja realmente excluir <b>{deleteTarget.name}</b>?</p>
+            {deleteTarget.relatedTasks > 0 && <p>Isso excluirá {deleteTarget.relatedTasks} tarefa(s) relacionada(s).</p>}
             <div className="modal-buttons">
               <button onClick={handleDelete}>Sim, excluir</button>
               <button onClick={() => setShowDeleteModal(false)}>Cancelar</button>
@@ -428,6 +254,7 @@ function Dashboard() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default function Sidebar({
                   {activeItem === project.id && activeType === "project" && (
                     <div className="item-actions">
                       <button onClick={() => onEditProject(project)} className="edit-btn">✏️</button>
-                      <button onClick={() => onDeleteProject(project.id)} className="delete-btn">🗑️</button>
+                      <button onClick={() => onDeleteProject(project.id, project.name)} className="delete-btn">🗑️</button>
                     </div>
                   )}
                 </div>
@@ -85,7 +85,7 @@ export default function Sidebar({
                   {activeItem === tag.id && activeType === "tag" && (
                     <div className="item-actions">
                       <button onClick={() => onEditTag(tag)} className="edit-btn">✏️</button>
-                      <button onClick={() => onDeleteTag(tag.id)} className="delete-btn">🗑️</button>
+                      <button onClick={() => onDeleteTag(tag.id, tag.name)} className="delete-btn">🗑️</button>
                     </div>
                   )}
                 </div>
