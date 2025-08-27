@@ -1,8 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import "../styles/Register.css";
 
 function Register() {
@@ -15,24 +14,40 @@ function Register() {
     e.preventDefault();
     try {
       await axios.post("http://localhost:3000/auth/register", { name, email, password });
-      toast.success("Usuário criado! Faça login.");
+      toast.success("✅ Usuário criado com sucesso! Faça login.");
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      toast.error("Erro no cadastro");
+      toast.error("❌ Erro no cadastro. Verifique os dados.");
     }
   }
 
   return (
     <div className="register-page">
-      <ToastContainer position="top-right" autoClose={3000} />
       <div className="register-container">
         <h2>Cadastro</h2>
         <form onSubmit={handleRegister}>
-          <input type="text" placeholder="Nome" value={name} onChange={e => setName(e.target.value)} />
-          <input type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} />
-          <input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Nome"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <button type="submit">Registrar</button>
-          <p>Já tem cadastro? <a href="/login">Faça Login</a></p>
+          <p>
+            Já tem cadastro? <Link to="/login">Faça Login</Link>
+          </p>
         </form>
       </div>
     </div>
