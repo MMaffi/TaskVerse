@@ -63,7 +63,7 @@ header h2 {
 /* Lista de projetos */
 .projects-container {
   display: flex;
-  flex-direction: column; /* Projetos empilhados */
+  flex-direction: column;
   gap: 20px;
 }
 
@@ -266,7 +266,7 @@ header h2 {
   background-color: #aaa;
 }
 
-/* Responsividade */
+/* Media Query */
 @media (max-width: 1024px) {
   .dashboard {
     flex-direction: column;

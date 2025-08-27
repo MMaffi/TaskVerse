@@ -18,7 +18,6 @@ function ProjectsAndTags() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // CRUD Projetos
   async function addProject() {
     if (!newProject.trim()) return;
     await axios.post("http://localhost:3000/projects", { name: newProject }, { headers: { Authorization: `Bearer ${token}` } });
@@ -35,7 +34,6 @@ function ProjectsAndTags() {
     fetchData();
   }
 
-  // CRUD Tags
   async function addTag() {
     if (!newTag.name.trim()) return;
     await axios.post("http://localhost:3000/tags", newTag, { headers: { Authorization: `Bearer ${token}` } });

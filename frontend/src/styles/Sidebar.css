@@ -127,7 +127,7 @@
   padding-bottom: 10px;
 }
 
-/* Responsividade */
+/* Media Query */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
