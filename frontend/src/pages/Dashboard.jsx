@@ -298,8 +298,8 @@ function Dashboard() {
             <h3>{editingProject ? "Editar Projeto" : "Criar Projeto"}</h3>
             <input placeholder="Nome do projeto" value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => handleKeyDown(e, createProject, cancelProjectModal)} />
             <div className="modal-buttons">
-              <button onClick={createProject}>Salvar</button>
               <button onClick={cancelProjectModal}>Cancelar</button>
+              <button onClick={createProject}>Salvar</button>
             </div>
           </div>
         </div>
@@ -312,8 +312,8 @@ function Dashboard() {
             <input placeholder="Nome da tag" value={newTagName} onChange={e => setNewTagName(e.target.value)} onKeyDown={e => handleKeyDown(e, createTag, cancelTagModal)} />
             <input type="color" value={newTagColor} onChange={e => setNewTagColor(e.target.value)} />
             <div className="modal-buttons">
-              <button onClick={createTag}>Salvar</button>
               <button onClick={cancelTagModal}>Cancelar</button>
+              <button onClick={createTag}>Salvar</button>
             </div>
           </div>
         </div>
@@ -333,8 +333,8 @@ function Dashboard() {
               {tags.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
             </select>
             <div className="modal-buttons">
-              <button onClick={addTask}>Salvar</button>
               <button onClick={cancelTaskModal}>Cancelar</button>
+              <button onClick={addTask}>Salvar</button>
             </div>
           </div>
         </div>

@@ -35,13 +35,29 @@ export default function Sidebar({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === "b") {
-        e.preventDefault(); // evita comportamentos do browser
+        e.preventDefault();
         setIsOpen(prev => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Função para decidir a cor do texto (preto ou branco) baseado na cor de fundo
+  const getTextColor = (backgroundColor) => {
+    if (!backgroundColor) return "black";
+
+    const hex = backgroundColor.replace("#", "");
+    if (hex.length !== 6) return "black";
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Calcula luminância relativa
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? "black" : "white";
+  };
 
   return (
     <div className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
@@ -105,7 +121,10 @@ export default function Sidebar({
               <div key={tag.id} className="tag-wrapper">
                 <span
                   className="tag"
-                  style={{ backgroundColor: tag.color }}
+                  style={{
+                    backgroundColor: tag.color,
+                    color: getTextColor(tag.color)
+                  }}
                   onClick={() => handleItemClick(tag.id, "tag")}
                   title={tag.name}
                 >
