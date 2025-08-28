@@ -1,9 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import "../styles/Login.css";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,7 +16,7 @@ function Login() {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", {
+      const res = await axios.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
@@ -48,7 +50,7 @@ function Login() {
           <button type="submit">Entrar</button>
         </form>
         <p>
-          Não tem cadastro? <a href="/register">Cadastre-se</a>
+          Não tem cadastro? <Link to="/register">Cadastre-se</Link>
         </p>
       </div>
     </div>

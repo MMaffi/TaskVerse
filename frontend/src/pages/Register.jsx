@@ -4,6 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Register.css";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,7 +15,7 @@ function Register() {
   async function handleRegister(e) {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/auth/register", { name, email, password });
+      await axios.post(`${API_URL}/auth/register`, { name, email, password });
       toast.success("✅ Usuário criado com sucesso! Faça login.");
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
