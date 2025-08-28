@@ -13,7 +13,7 @@
 }
 
 .sidebar.collapsed {
-  width: 60px;
+  width: 70px;
 }
 
 /* Header */
@@ -24,11 +24,22 @@
   margin-bottom: 20px;
 }
 
+.sidebar.collapsed .sidebar-header {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
 .menu-btn {
   background: none;
   border: none;
   font-size: 22px;
   cursor: pointer;
+}
+
+.sidebar.collapsed .menu-btn {
+  font-size: 22px;
+  margin-bottom: 10px;
 }
 
 .sidebar-title {
@@ -87,6 +98,15 @@
   background-color: #ffa726;
 }
 
+/* Compact Header (ícone quando minimizada) */
+.section-header .compact-header {
+  display: block;
+  text-align: center;
+  font-size: 18px;
+  cursor: default;
+  margin-bottom: 10px;
+}
+
 /* Listas de Projetos e Tags */
 .projects-list,
 .tags-list {
@@ -95,13 +115,24 @@
   gap: 6px;
 }
 
+/* Compact mode para listas */
+.sidebar.collapsed .projects-list,
+.sidebar.collapsed .tags-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
 /* Wrapper dos itens */
 .project-item-wrapper,
 .tag-wrapper {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* mantém os botões dentro do item */
+  justify-content: space-between;
   padding: 2px 0;
+  width: 100%;
 }
 
 /* Item de Projeto / Tag */
@@ -113,12 +144,31 @@
   cursor: pointer;
   transition: 0.2s;
   font-weight: bold;
-  flex-shrink: 0; /* não deixa encolher o conteúdo */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .project-item:hover,
 .tag:hover {
   filter: brightness(1.1);
+}
+
+.sidebar.collapsed .projects-section,
+.sidebar.collapsed .tags-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #bbb;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.section-header .compact-header {
+  font-size: 20px;
+  margin-bottom: 6px;
+  text-align: center;
 }
 
 /* Opções Editar/Excluir */
