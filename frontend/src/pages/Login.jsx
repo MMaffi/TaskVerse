@@ -26,7 +26,19 @@ function Login() {
       toast.success("Login efetuado com sucesso!");
       navigate("/", { replace: true });
     } catch (err) {
-      toast.error("Erro no login");
+      if (err.response) {
+        // O servidor respondeu com um status fora do range 2xx
+        if (err.response.status === 401 || err.response.status === 403) {
+          toast.error("Credenciais incorretas. Verifique seu e-mail e senha.");
+        } else {
+          toast.error(`Erro no login: ${err.response.data.message || "Tente novamente."}`);
+        }
+      } else if (err.request) {
+        // Nenhuma resposta do servidor
+        toast.error("Servidor não respondeu. Tente novamente mais tarde.");
+      } else {
+        toast.error("Ocorreu um erro. Tente novamente.");
+      }
     }
   }
 
