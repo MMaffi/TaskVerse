@@ -114,6 +114,7 @@ header h2 {
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
 
+/* Checkbox bonito e título riscado */
 .task-header {
   display: flex;
   justify-content: space-between;
@@ -125,8 +126,25 @@ header h2 {
   font-weight: bold;
   color: #2c3e50;
   flex: 1;
+  transition: 0.2s;
 }
 
+.task-title.completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: #7d7d7d;
+}
+
+/* Checkbox estilizado */
+.task-header input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #66cc99;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Tags */
 .task-tag {
   padding: 2px 8px;
   border-radius: 6px;
@@ -140,6 +158,7 @@ header h2 {
   content: "#";
 }
 
+/* Ações da task */
 .task-actions {
   display: flex;
   justify-content: flex-end;

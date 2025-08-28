@@ -94,14 +94,28 @@ function Dashboard() {
     const color = tags.find(t => t.name === newTaskTag)?.color || "gray";
     try {
       if (editingTask) {
-        await axios.put(`${API_URL}/tasks/${editingTask.id}`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`${API_URL}/tasks/${editingTask.id}`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color, completed: editingTask.completed }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tarefa editada com sucesso");
       } else {
-        await axios.post(`${API_URL}/tasks`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${API_URL}/tasks`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color, completed: 0 }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tarefa criada com sucesso");
       }
       cancelTaskModal(); fetchData();
     } catch { toast.error("Erro ao criar/editar tarefa"); }
+  }
+
+  // --- Toggle Completed ---
+  async function toggleTaskCompletion(task) {
+    try {
+      await axios.put(`${API_URL}/tasks/${task.id}`, {
+        ...task,
+        completed: task.completed ? 0 : 1
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      setTasks(tasks.map(t => t.id === task.id ? { ...t, completed: task.completed ? 0 : 1 } : t));
+    } catch {
+      toast.error("Erro ao atualizar tarefa");
+    }
   }
 
   // --- Exclusão ---
@@ -160,7 +174,6 @@ function Dashboard() {
 
     const taskId = parseInt(draggableId);
 
-    // Se não mudou de lugar
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
@@ -169,7 +182,6 @@ function Dashboard() {
     }
 
     const newTasks = Array.from(tasks);
-
     const movedTask = newTasks.find((t) => t.id === taskId);
     if (!movedTask) return;
 
@@ -186,14 +198,10 @@ function Dashboard() {
     setTasks(reordered);
 
     try {
-      // Atualiza no backend a tarefa movida
       await axios.put(
         `${API_URL}/tasks/${taskId}`,
         {
-          title: movedTask.title,
-          project: movedTask.project,
-          tag: movedTask.tag,
-          color: movedTask.color,
+          ...movedTask,
           order: destination.index,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -255,7 +263,14 @@ function Dashboard() {
                               }}
                             >
                               <div className="task-header">
-                                <span className="task-title">{task.title}</span>
+                                <input
+                                  type="checkbox"
+                                  checked={!!task.completed}
+                                  onChange={() => toggleTaskCompletion(task)}
+                                />
+                                <span className={`task-title ${task.completed ? "completed" : ""}`}>
+                                  {task.title}
+                                </span>
                                 <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
                               </div>
                               <div className="task-actions">
