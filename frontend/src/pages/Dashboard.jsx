@@ -7,6 +7,8 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Dashboard.css";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -40,9 +42,9 @@ function Dashboard() {
   async function fetchData() {
     try {
       const [tasksRes, projectsRes, tagsRes] = await Promise.all([
-        axios.get("http://localhost:3000/tasks", { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get("http://localhost:3000/projects", { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get("http://localhost:3000/tags", { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/tags`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       setTasks(tasksRes.data);
       setProjects(projectsRes.data);
@@ -63,10 +65,10 @@ function Dashboard() {
     if (!newProjectName.trim()) return;
     try {
       if (editingProject) {
-        await axios.put(`http://localhost:3000/projects/${editingProject.id}`, { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`${API_URL}/projects/${editingProject.id}`, { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Projeto editado com sucesso");
       } else {
-        await axios.post("http://localhost:3000/projects", { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${API_URL}/projects`, { name: newProjectName }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Projeto criado com sucesso");
       }
       setNewProjectName(""); setShowProjectModal(false); setEditingProject(null); fetchData();
@@ -77,10 +79,10 @@ function Dashboard() {
     if (!newTagName.trim()) return;
     try {
       if (editingTag) {
-        await axios.put(`http://localhost:3000/tags/${editingTag.id}`, { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`${API_URL}/tags/${editingTag.id}`, { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tag editada com sucesso");
       } else {
-        await axios.post("http://localhost:3000/tags", { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${API_URL}/tags`, { name: newTagName, color: newTagColor }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tag criada com sucesso");
       }
       setNewTagName(""); setNewTagColor("#1890ff"); setShowTagModal(false); setEditingTag(null); fetchData();
@@ -92,10 +94,10 @@ function Dashboard() {
     const color = tags.find(t => t.name === newTaskTag)?.color || "gray";
     try {
       if (editingTask) {
-        await axios.put(`http://localhost:3000/tasks/${editingTask.id}`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`${API_URL}/tasks/${editingTask.id}`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tarefa editada com sucesso");
       } else {
-        await axios.post("http://localhost:3000/tasks", { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${API_URL}/tasks`, { title: newTaskTitle, project: newTaskProject, tag: newTaskTag, color }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Tarefa criada com sucesso");
       }
       cancelTaskModal(); fetchData();
@@ -105,11 +107,11 @@ function Dashboard() {
   // --- Exclusão ---
   async function deleteTasksByProject(projectName) {
     const related = tasks.filter(t => t.project === projectName);
-    for (const t of related) await axios.delete(`http://localhost:3000/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    for (const t of related) await axios.delete(`${API_URL}/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
   }
   async function deleteTasksByTag(tagName) {
     const related = tasks.filter(t => t.tag === tagName);
-    for (const t of related) await axios.delete(`http://localhost:3000/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    for (const t of related) await axios.delete(`${API_URL}/tasks/${t.id}`, { headers: { Authorization: `Bearer ${token}` } });
   }
 
   const confirmDeleteProject = (id, name) => { const related = tasks.filter(t => t.project === name).length; setDeleteTarget({ type: "project", id, name, relatedTasks: related }); setShowDeleteModal(true); };
@@ -118,25 +120,19 @@ function Dashboard() {
 
   const handleDelete = async () => {
     const { type, id, name } = deleteTarget;
-
-    // Mapeamento para português
-    const typePt = {
-      task: "Tarefa",
-      project: "Projeto",
-      tag: "Tag"
-    }[type] || type;
+    const typePt = { task: "Tarefa", project: "Projeto", tag: "Tag" }[type] || type;
 
     try {
       if (type === "task") {
-        await axios.delete(`http://localhost:3000/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.delete(`${API_URL}/tasks/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       }
       if (type === "project") {
         await deleteTasksByProject(name);
-        await axios.delete(`http://localhost:3000/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.delete(`${API_URL}/projects/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       }
       if (type === "tag") {
         await deleteTasksByTag(name);
-        await axios.delete(`http://localhost:3000/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.delete(`${API_URL}/tags/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       }
 
       toast.success(`${typePt} deletado(a)`);
@@ -171,7 +167,7 @@ function Dashboard() {
     const updatedTask = { ...task, project: newProject };
 
     try {
-      await axios.put(`http://localhost:3000/tasks/${taskId}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${API_URL}/tasks/${taskId}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
       setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
       toast.success(`Tarefa movida para ${newProject}`);
     } catch { toast.error("Erro ao mover tarefa"); }
@@ -249,7 +245,7 @@ function Dashboard() {
         </DragDropContext>
       </div>
 
-      {/* Modais (mesmos do código anterior) */}
+      {/* --- Modais --- */}
       {showProjectModal && (
         <div className="modal">
           <div className="modal-content">
