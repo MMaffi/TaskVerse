@@ -12,21 +12,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- Configurando CORS ---
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "").split(",");
-
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS não permitido para o origin: ${origin}`));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(bodyParser.json());
 
 // --- Rotas ---
