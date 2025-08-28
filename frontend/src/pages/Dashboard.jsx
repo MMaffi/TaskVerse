@@ -14,6 +14,7 @@ function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tags, setTags] = useState([]);
+  const [collapsedProjects, setCollapsedProjects] = useState({}); // Para minimizar projetos
 
   const [editingTask, setEditingTask] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
@@ -168,6 +169,14 @@ function Dashboard() {
   const openEditProjectModal = (project) => { setEditingProject(project); setNewProjectName(project.name); setShowProjectModal(true); };
   const openEditTagModal = (tag) => { setEditingTag(tag); setNewTagName(tag.name); setNewTagColor(tag.color); setShowTagModal(true); };
 
+  // --- Minimizar projeto ---
+  const toggleProjectCollapse = (projectId) => {
+    setCollapsedProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
+  };
+
   // --- Drag & Drop ---
   const onDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
@@ -241,49 +250,48 @@ function Dashboard() {
             {projects.map(project => (
               <Droppable droppableId={project.name} key={project.id}>
                 {(provided) => (
-                  <div className="project-box" ref={provided.innerRef} {...provided.droppableProps}>
+                  <div className={`project-box ${collapsedProjects[project.id] ? "collapsed" : ""}`} ref={provided.innerRef} {...provided.droppableProps}>
                     <div className="project-header">
-                      <h3>{project.name}</h3>
+                      <div className="project-title-container" onClick={() => toggleProjectCollapse(project.id)}>
+                        <span className="collapse-icon">{collapsedProjects[project.id] ? "▶" : "▼"}</span>
+                        <h3>{project.name}</h3>
+                      </div>
                       <button className="add-task-project-btn" onClick={() => { setEditingTask(null); setNewTaskProject(project.name); setIsProjectFixed(true); setShowTaskModal(true); }}>
                         + Adicionar Tarefa
                       </button>
                     </div>
-                    <ul className="task-list">
-                      {tasks.filter(t => t.project === project.name).map((task, index) => (
-                        <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
-                          {(provided, snapshot) => (
-                            <li
-                              className={`task-item ${snapshot.isDragging ? "dragging" : ""}`}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                                boxShadow: snapshot.isDragging ? "0 5px 15px rgba(0,0,0,0.3)" : "none",
-                                transition: "all 0.2s ease",
-                              }}
-                            >
-                              <div className="task-header">
-                                <input
-                                  type="checkbox"
-                                  checked={!!task.completed}
-                                  onChange={() => toggleTaskCompletion(task)}
-                                />
-                                <span className={`task-title ${task.completed ? "completed" : ""}`}>
-                                  {task.title}
-                                </span>
-                                <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
-                              </div>
-                              <div className="task-actions">
-                                <button className="edit-btn" onClick={() => openEditTaskModal(task)}>Editar</button>
-                                <button className="delete-btn" onClick={() => confirmDeleteTask(task.id, task.title)}>Excluir</button>
-                              </div>
-                            </li>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </ul>
+                    {!collapsedProjects[project.id] && (
+                      <ul className="task-list">
+                        {tasks.filter(t => t.project === project.name).map((task, index) => (
+                          <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
+                            {(provided, snapshot) => (
+                              <li
+                                className={`task-item ${snapshot.isDragging ? "dragging" : ""}`}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  boxShadow: snapshot.isDragging ? "0 5px 15px rgba(0,0,0,0.3)" : "none",
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <div className="task-header">
+                                  <input type="checkbox" checked={!!task.completed} onChange={() => toggleTaskCompletion(task)} />
+                                  <span className={`task-title ${task.completed ? "completed" : ""}`}>{task.title}</span>
+                                  <span className="task-tag" style={{ backgroundColor: task.color }}>{task.tag}</span>
+                                </div>
+                                <div className="task-actions">
+                                  <button className="edit-btn" onClick={() => openEditTaskModal(task)}>Editar</button>
+                                  <button className="delete-btn" onClick={() => confirmDeleteTask(task.id, task.title)}>Excluir</button>
+                                </div>
+                              </li>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </ul>
+                    )}
                   </div>
                 )}
               </Droppable>

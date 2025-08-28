@@ -73,15 +73,30 @@ header h2 {
   padding: 15px;
   width: 97%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
 .project-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 
+.project-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapse-icon {
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Botão adicionar tarefa dentro do projeto */
 .add-task-project-btn {
   background-color: #66cc99;
   color: white;
@@ -304,4 +319,13 @@ header h2 {
   .task-input button {
     width: 100%;
   }
+}
+
+/* Projetos minimizados */
+.project-box.collapsed .task-list {
+  display: none;
+}
+
+.project-box.collapsed {
+  padding-bottom: 5px;
 }
