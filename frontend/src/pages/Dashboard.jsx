@@ -155,22 +155,53 @@ function Dashboard() {
 
   // --- Drag & Drop ---
   const onDragEnd = async (result) => {
-    const { destination, draggableId } = result;
+    const { destination, source, draggableId } = result;
     if (!destination) return;
+
     const taskId = parseInt(draggableId);
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
 
-    const newProject = destination.droppableId;
-    if (task.project === newProject) return;
+    // Se não mudou de lugar
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
 
-    const updatedTask = { ...task, project: newProject };
+    const newTasks = Array.from(tasks);
+
+    const movedTask = newTasks.find((t) => t.id === taskId);
+    if (!movedTask) return;
+
+    movedTask.project = destination.droppableId;
+
+    newTasks.splice(source.index, 1);
+    newTasks.splice(destination.index, 0, movedTask);
+
+    const reordered = newTasks.map((t, index) => ({
+      ...t,
+      order: index,
+    }));
+
+    setTasks(reordered);
 
     try {
-      await axios.put(`${API_URL}/tasks/${taskId}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
-      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
-      toast.success(`Tarefa movida para ${newProject}`);
-    } catch { toast.error("Erro ao mover tarefa"); }
+      // Atualiza no backend a tarefa movida
+      await axios.put(
+        `${API_URL}/tasks/${taskId}`,
+        {
+          title: movedTask.title,
+          project: movedTask.project,
+          tag: movedTask.tag,
+          color: movedTask.color,
+          order: destination.index,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Tarefa movida com sucesso");
+    } catch {
+      toast.error("Erro ao mover tarefa");
+    }
   };
 
   return (

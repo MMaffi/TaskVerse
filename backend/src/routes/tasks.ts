@@ -12,11 +12,11 @@ interface AuthRequest extends Request {
 
 const router = Router();
 
-// LISTAR TODAS AS TASKS DO USUÁRIO
+// LISTAR TODAS AS TASKS DO USUÁRIO (ordenadas)
 router.get("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const [tasks] = await db.query(
-      "SELECT * FROM tasks WHERE user_id = ?",
+      "SELECT * FROM tasks WHERE user_id = ? ORDER BY `order` ASC",
       [req.user!.id]
     );
     res.json(tasks);
@@ -32,26 +32,36 @@ router.post("/", authMiddleware, async (req: AuthRequest, res: Response) => {
   if (!title) return res.status(400).json({ message: "Título obrigatório" });
 
   try {
-    const [result] = await db.query(
-      "INSERT INTO tasks (project, title, tag, color, user_id) VALUES (?, ?, ?, ?, ?)",
-      [project || "Meu Projeto", title, tag || "Tag", color || "gray", req.user!.id]
+    // pega a maior ordem atual e soma +1
+    const [maxOrderRows]: any = await db.query(
+      "SELECT COALESCE(MAX(`order`), 0) as maxOrder FROM tasks WHERE user_id = ?",
+      [req.user!.id]
     );
-    res.status(201).json({ message: "Tarefa criada", taskId: (result as any).insertId });
+    const newOrder = maxOrderRows[0].maxOrder + 1;
+
+    const [result] = await db.query(
+      "INSERT INTO tasks (project, title, tag, color, user_id, `order`) VALUES (?, ?, ?, ?, ?, ?)",
+      [project || "Meu Projeto", title, tag || "Tag", color || "gray", req.user!.id, newOrder]
+    );
+
+    res
+      .status(201)
+      .json({ message: "Tarefa criada", taskId: (result as any).insertId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erro ao criar tarefa" });
   }
 });
 
-// EDITAR UMA TASK
+// EDITAR UMA TASK (incluindo mover projeto/ordem)
 router.put("/:id", authMiddleware, async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { title, tag, color } = req.body;
+  const { title, tag, color, project, order } = req.body;
 
   try {
     const [result] = await db.query(
-      "UPDATE tasks SET title = ?, tag = ?, color = ? WHERE id = ? AND user_id = ?",
-      [title, tag, color, id, req.user!.id]
+      "UPDATE tasks SET title = ?, tag = ?, color = ?, project = ?, `order` = ? WHERE id = ? AND user_id = ?",
+      [title, tag, color, project, order ?? 0, id, req.user!.id]
     );
 
     if ((result as any).affectedRows === 0) {
