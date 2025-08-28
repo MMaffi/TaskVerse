@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import "react-toastify/dist/ReactToastify.css";
 import "../styles/Dashboard.css";
+import "../styles/Scrollbar.css";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
