@@ -34,6 +34,19 @@ export default function Sidebar({
     }
   };
 
+  // Novo: toggle de seção que abre sidebar se estiver colapsada
+  const toggleSection = (section) => {
+    if (!isOpen) {
+      setIsOpen(true);
+      if (section === "projects") setProjectsOpen(true);
+      if (section === "tags") setTagsOpen(true);
+      return;
+    }
+
+    if (section === "projects") setProjectsOpen((prev) => !prev);
+    if (section === "tags") setTagsOpen((prev) => !prev);
+  };
+
   // Listener para Ctrl + B
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -78,7 +91,7 @@ export default function Sidebar({
             {isOpen ? (
               <>
                 <h4
-                  onClick={() => setProjectsOpen(!projectsOpen)}
+                  onClick={() => toggleSection("projects")}
                   style={{ cursor: "pointer", userSelect: "none" }}
                 >
                   {projectsOpen ? "▼" : "▶"} Projetos
@@ -86,7 +99,14 @@ export default function Sidebar({
                 <button className="new-project-btn" onClick={onCreateProject}>+ Novo</button>
               </>
             ) : (
-              <span className="compact-header" title="Projetos">📁</span>
+              <span
+                className="compact-header"
+                title="Projetos"
+                onClick={() => toggleSection("projects")}
+                style={{ cursor: "pointer" }}
+              >
+                📁
+              </span>
             )}
           </div>
 
@@ -120,7 +140,7 @@ export default function Sidebar({
             {isOpen ? (
               <>
                 <h4
-                  onClick={() => setTagsOpen(!tagsOpen)}
+                  onClick={() => toggleSection("tags")}
                   style={{ cursor: "pointer", userSelect: "none" }}
                 >
                   {tagsOpen ? "▼" : "▶"} Tags
@@ -128,7 +148,14 @@ export default function Sidebar({
                 <button className="create-tag-btn" onClick={onCreateTag}>+ Novo</button>
               </>
             ) : (
-              <span className="compact-header" title="Tags">🏷️</span>
+              <span
+                className="compact-header"
+                title="Tags"
+                onClick={() => toggleSection("tags")}
+                style={{ cursor: "pointer" }}
+              >
+                🏷️
+              </span>
             )}
           </div>
 
