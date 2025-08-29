@@ -62,8 +62,8 @@ header h2 {
 
 /* Lista de projetos */
 .projects-container {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 20px;
 }
 
@@ -71,11 +71,11 @@ header h2 {
   background: #fff;
   border-radius: 10px;
   padding: 15px;
-  width: 97%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
 }
 
+/* Header do projeto */
 .project-header {
   display: flex;
   align-items: center;
