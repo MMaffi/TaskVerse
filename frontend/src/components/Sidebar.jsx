@@ -18,8 +18,11 @@ export default function Sidebar({
   const [activeItem, setActiveItem] = useState(null);
   const [activeType, setActiveType] = useState(null);
 
+  // estados para colapsar Projetos e Tags
+  const [projectsOpen, setProjectsOpen] = useState(true);
+  const [tagsOpen, setTagsOpen] = useState(true);
+
   const handleItemClick = (id, type) => {
-    // Se a sidebar estiver minimizada, abre
     if (!isOpen) setIsOpen(true);
 
     if (activeItem === id && activeType === type) {
@@ -36,14 +39,14 @@ export default function Sidebar({
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === "b") {
         e.preventDefault();
-        setIsOpen(prev => !prev);
+        setIsOpen((prev) => !prev);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Função para decidir a cor do texto (preto ou branco) baseado na cor de fundo
+  // Função para decidir a cor do texto baseado na cor de fundo
   const getTextColor = (backgroundColor) => {
     if (!backgroundColor) return "black";
 
@@ -54,7 +57,6 @@ export default function Sidebar({
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Calcula luminância relativa
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     return luminance > 0.5 ? "black" : "white";
   };
@@ -75,33 +77,41 @@ export default function Sidebar({
           <div className="section-header">
             {isOpen ? (
               <>
-                <h4>Projetos</h4>
+                <h4
+                  onClick={() => setProjectsOpen(!projectsOpen)}
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                >
+                  {projectsOpen ? "▼" : "▶"} Projetos
+                </h4>
                 <button className="new-project-btn" onClick={onCreateProject}>+ Novo</button>
               </>
             ) : (
               <span className="compact-header" title="Projetos">📁</span>
             )}
           </div>
-          <div className={`projects-list ${isOpen ? "" : "compact"}`}>
-            {projects.map(project => (
-              <div key={project.id} className="project-item-wrapper">
-                <div
-                  className="project-item"
-                  onClick={() => handleItemClick(project.id, "project")}
-                  title={project.name}
-                >
-                  {isOpen ? project.name : project.name.charAt(0)}
-                </div>
 
-                {isOpen && activeItem === project.id && activeType === "project" && (
-                  <div className="item-actions">
-                    <button onClick={() => onEditProject(project)} className="edit-btn">✏️</button>
-                    <button onClick={() => onDeleteProject(project.id, project.name)} className="delete-btn">🗑️</button>
+          {projectsOpen && (
+            <div className={`projects-list ${isOpen ? "" : "compact"}`}>
+              {projects.map((project) => (
+                <div key={project.id} className="project-item-wrapper">
+                  <div
+                    className="project-item"
+                    onClick={() => handleItemClick(project.id, "project")}
+                    title={project.name}
+                  >
+                    {isOpen ? project.name : project.name.charAt(0)}
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+
+                  {isOpen && activeItem === project.id && activeType === "project" && (
+                    <div className="item-actions">
+                      <button onClick={() => onEditProject(project)} className="edit-btn">✏️</button>
+                      <button onClick={() => onDeleteProject(project.id, project.name)} className="delete-btn">🗑️</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Tags */}
@@ -109,37 +119,45 @@ export default function Sidebar({
           <div className="section-header">
             {isOpen ? (
               <>
-                <h4>Tags</h4>
+                <h4
+                  onClick={() => setTagsOpen(!tagsOpen)}
+                  style={{ cursor: "pointer", userSelect: "none" }}
+                >
+                  {tagsOpen ? "▼" : "▶"} Tags
+                </h4>
                 <button className="create-tag-btn" onClick={onCreateTag}>+ Novo</button>
               </>
             ) : (
               <span className="compact-header" title="Tags">🏷️</span>
             )}
           </div>
-          <div className={`tags-list ${isOpen ? "" : "compact"}`}>
-            {tags.map(tag => (
-              <div key={tag.id} className="tag-wrapper">
-                <span
-                  className="tag"
-                  style={{
-                    backgroundColor: tag.color,
-                    color: getTextColor(tag.color)
-                  }}
-                  onClick={() => handleItemClick(tag.id, "tag")}
-                  title={tag.name}
-                >
-                  {isOpen ? `#${tag.name}` : tag.name.charAt(0)}
-                </span>
 
-                {isOpen && activeItem === tag.id && activeType === "tag" && (
-                  <div className="item-actions">
-                    <button onClick={() => onEditTag(tag)} className="edit-btn">✏️</button>
-                    <button onClick={() => onDeleteTag(tag.id, tag.name)} className="delete-btn">🗑️</button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          {tagsOpen && (
+            <div className={`tags-list ${isOpen ? "" : "compact"}`}>
+              {tags.map((tag) => (
+                <div key={tag.id} className="tag-wrapper">
+                  <span
+                    className="tag"
+                    style={{
+                      backgroundColor: tag.color,
+                      color: getTextColor(tag.color)
+                    }}
+                    onClick={() => handleItemClick(tag.id, "tag")}
+                    title={tag.name}
+                  >
+                    {isOpen ? `#${tag.name}` : tag.name.charAt(0)}
+                  </span>
+
+                  {isOpen && activeItem === tag.id && activeType === "tag" && (
+                    <div className="item-actions">
+                      <button onClick={() => onEditTag(tag)} className="edit-btn">✏️</button>
+                      <button onClick={() => onDeleteTag(tag.id, tag.name)} className="delete-btn">🗑️</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

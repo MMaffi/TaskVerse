@@ -356,8 +356,8 @@ function Dashboard() {
             <p>Deseja realmente excluir <b>{deleteTarget.name}</b>?</p>
             {deleteTarget.relatedTasks > 0 && <p>Isso excluirá {deleteTarget.relatedTasks} tarefa(s) relacionada(s).</p>}
             <div className="modal-buttons">
-              <button onClick={handleDelete}>Sim, excluir</button>
               <button onClick={() => setShowDeleteModal(false)}>Cancelar</button>
+              <button onClick={handleDelete}>Sim, excluir</button>
             </div>
           </div>
         </div>
